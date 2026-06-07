@@ -36,10 +36,12 @@ let activeFormat = "All";
 form.dateConsumed.valueAsDate = new Date();
 render();
 
-form.addEventListener("submit", (event) => {
+form.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const formData = new FormData(form);
+  const existingEntry = entries.find((item) => item.id === editingId);
+  const uploadedPhoto = await getUploadedPhoto(formData.get("itemPhoto"));
   const entry = {
     id: editingId ?? crypto.randomUUID(),
     title: clean(formData.get("title")),
@@ -52,7 +54,9 @@ form.addEventListener("submit", (event) => {
     similarWorks: clean(formData.get("similarWorks")) || "None noted",
     contentIdea: clean(formData.get("contentIdea")) || "None yet",
     wouldRevisit: formData.get("wouldRevisit") === "on",
-    createdAt: editingId ? entries.find((item) => item.id === editingId)?.createdAt : new Date().toISOString(),
+    imageUrl: uploadedPhoto || existingEntry?.imageUrl || "",
+    imageSource: uploadedPhoto ? "upload" : existingEntry?.imageSource || "",
+    createdAt: editingId ? existingEntry?.createdAt : new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
 
@@ -125,6 +129,7 @@ function render() {
     const card = template.content.firstElementChild.cloneNode(true);
     card.dataset.id = entry.id;
     card.dataset.format = entry.format;
+    renderEntryImage(card, entry);
     card.querySelector("h3").textContent = entry.title;
     card.querySelector(".meta-line").textContent = `${entry.format} - ${formatDate(entry.dateConsumed)}`;
     card.querySelector(".rating-badge").textContent = `${entry.rating}/5`;
@@ -141,6 +146,29 @@ function render() {
   renderStats();
   renderFormatTabs();
   renderFeature();
+}
+
+function renderEntryImage(card, entry) {
+  const media = card.querySelector(".entry-media");
+  const image = card.querySelector(".entry-media img");
+  const caption = card.querySelector(".entry-media figcaption");
+
+  if (isStoredUpload(entry.imageUrl)) {
+    media.classList.remove("generated");
+    image.hidden = false;
+    image.src = entry.imageUrl;
+    image.alt = `${entry.title} ${entry.format} image`;
+    caption.textContent = "Your photo";
+    return;
+  }
+
+  media.classList.add("generated");
+  media.dataset.initials = getInitials(entry.title);
+  media.dataset.format = entry.format;
+  image.hidden = true;
+  image.removeAttribute("src");
+  image.alt = "";
+  caption.textContent = `${entry.format} poster`;
 }
 
 function renderRatingMeter(container, rating) {
@@ -267,6 +295,31 @@ function resetForm() {
 
 function clean(value) {
   return String(value || "").trim();
+}
+
+function getUploadedPhoto(file) {
+  if (!(file instanceof File) || !file.size) return Promise.resolve("");
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => resolve(String(reader.result || "")));
+    reader.addEventListener("error", () => reject(reader.error));
+    reader.readAsDataURL(file);
+  });
+}
+
+function isStoredUpload(value) {
+  return typeof value === "string" && value.startsWith("data:image/");
+}
+
+function getInitials(title) {
+  return title
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0])
+    .join("")
+    .toUpperCase();
 }
 
 function formatDate(value) {
