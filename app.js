@@ -1,9 +1,17 @@
 const STORAGE_KEY = "personal-media-tracker.entries.v1";
-const formats = ["Book", "Theatre", "Film", "TV Show", "Exhibition"];
+const LEGACY_STORAGE_KEYS = [
+  "media-tracker.entries.v1",
+  "media-tracker.entries",
+  "mediaTrackerEntries",
+  "personal-media-log.entries",
+  "cultural-diary.entries"
+];
+const formats = ["Book", "Theatre", "Musical", "Film", "TV Show", "Exhibition"];
 const formatLabels = {
   All: "All",
   Book: "Books",
   Theatre: "Theatre",
+  Musical: "Musicals",
   Film: "Films",
   "TV Show": "TV",
   Exhibition: "Exhibitions"
@@ -107,12 +115,77 @@ entriesList.addEventListener("click", (event) => {
 });
 
 function loadEntries() {
+  const primaryEntries = readStoredEntries(STORAGE_KEY);
+  if (primaryEntries.length) return primaryEntries;
+
+  const migratedEntries = LEGACY_STORAGE_KEYS.flatMap(readStoredEntries);
+  if (migratedEntries.length) {
+    const dedupedEntries = dedupeEntries(migratedEntries);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(dedupedEntries));
+    return dedupedEntries;
+  }
+
+  return [];
+}
+
+function readStoredEntries(key) {
   try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-    return Array.isArray(saved) ? saved : [];
+    const saved = JSON.parse(localStorage.getItem(key) || "[]");
+    if (!Array.isArray(saved)) return [];
+    return saved.map(normalizeEntry).filter(Boolean);
   } catch {
     return [];
   }
+}
+
+function normalizeEntry(entry) {
+  if (!entry || typeof entry !== "object") return null;
+
+  const title = clean(entry.title || entry.name);
+  if (!title) return null;
+
+  const format = normalizeFormat(entry.format || entry.type || entry.category);
+  const dateConsumed = clean(entry.dateConsumed || entry.date || entry.consumedAt || entry.createdAt?.slice(0, 10));
+  const rating = Number(entry.rating || entry.stars || 0);
+
+  return {
+    id: clean(entry.id) || crypto.randomUUID(),
+    title,
+    format,
+    dateConsumed: dateConsumed || new Date().toISOString().slice(0, 10),
+    rating: Number.isFinite(rating) && rating > 0 ? Math.min(Math.round(rating), 5) : 3,
+    vibe: clean(entry.vibe) || "Still settling",
+    stayedWithMe: clean(entry.stayedWithMe || entry.notes || entry.memory) || "A note to revisit.",
+    recommendTo: clean(entry.recommendTo || entry.recommendation) || "Someone with similar taste.",
+    similarWorks: clean(entry.similarWorks) || "None noted",
+    contentIdea: clean(entry.contentIdea) || "None yet",
+    wouldRevisit: Boolean(entry.wouldRevisit || entry.revisit),
+    imageUrl: clean(entry.imageUrl || entry.photoUrl),
+    imageSource: clean(entry.imageSource),
+    createdAt: clean(entry.createdAt) || new Date().toISOString(),
+    updatedAt: clean(entry.updatedAt) || new Date().toISOString()
+  };
+}
+
+function normalizeFormat(value) {
+  const format = clean(value);
+  const match = formats.find((item) => item.toLowerCase() === format.toLowerCase());
+  if (match) return match;
+  if (["movie", "movies", "film"].includes(format.toLowerCase())) return "Film";
+  if (["tv", "television", "series"].includes(format.toLowerCase())) return "TV Show";
+  if (["show", "stage"].includes(format.toLowerCase())) return "Theatre";
+  if (["musicals", "musical theatre"].includes(format.toLowerCase())) return "Musical";
+  return "Book";
+}
+
+function dedupeEntries(items) {
+  const seen = new Set();
+  return items.filter((entry) => {
+    const signature = entry.id || `${entry.title}-${entry.format}-${entry.dateConsumed}`;
+    if (seen.has(signature)) return false;
+    seen.add(signature);
+    return true;
+  });
 }
 
 function saveEntries() {
@@ -123,7 +196,7 @@ function render() {
   const visibleEntries = getVisibleEntries();
 
   entriesList.innerHTML = "";
-  emptyState.classList.toggle("hidden", visibleEntries.length > 0);
+  renderEmptyState(visibleEntries.length);
 
   visibleEntries.forEach((entry) => {
     const card = template.content.firstElementChild.cloneNode(true);
@@ -146,6 +219,29 @@ function render() {
   renderStats();
   renderFormatTabs();
   renderFeature();
+}
+
+function renderEmptyState(visibleCount) {
+  const title = emptyState.querySelector("p");
+  const detail = emptyState.querySelector("span");
+  const hasFilter = activeFormat !== "All" || Boolean(searchInput.value.trim());
+
+  emptyState.classList.toggle("hidden", visibleCount > 0);
+
+  if (!entries.length) {
+    title.textContent = "No entries yet.";
+    detail.textContent = "Add something you recently consumed, even if all you have is a mood and a sentence.";
+    return;
+  }
+
+  if (hasFilter) {
+    title.textContent = "No entries match this view.";
+    detail.textContent = "Clear the search or switch back to All to see your full archive.";
+    return;
+  }
+
+  title.textContent = "No entries to show.";
+  detail.textContent = "Your saved archive is still here; try refreshing this view.";
 }
 
 function renderEntryImage(card, entry) {
