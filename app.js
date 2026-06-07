@@ -158,7 +158,8 @@ function renderEntryImage(card, entry) {
     image.hidden = false;
     image.src = entry.imageUrl;
     image.alt = `${entry.title} ${entry.format} image`;
-    caption.textContent = "Your photo";
+    caption.hidden = true;
+    caption.textContent = "";
     return;
   }
 
@@ -168,6 +169,7 @@ function renderEntryImage(card, entry) {
   image.hidden = true;
   image.removeAttribute("src");
   image.alt = "";
+  caption.hidden = false;
   caption.textContent = `${entry.format} poster`;
 }
 
