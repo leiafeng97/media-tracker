@@ -4,6 +4,22 @@
   line-height: 1.4;
 }
 
+.entry-form,
+.entry-form label,
+.form-grid,
+.form-grid label,
+input,
+select,
+textarea {
+  min-width: 0;
+}
+
+input,
+select,
+textarea {
+  max-width: 100%;
+}
+
 .entry-card {
   grid-template-columns: 8px minmax(116px, 0.42fr) 1fr;
 }
@@ -88,5 +104,17 @@
   .entry-media img {
     aspect-ratio: 16 / 9;
     min-height: 0;
+  }
+}
+
+@media (max-width: 420px) {
+  input[type="date"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 100%;
+    min-width: 0;
+    font-size: 0.95rem;
+    padding-left: 10px;
+    padding-right: 10px;
   }
 }
