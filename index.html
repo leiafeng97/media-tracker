@@ -8,22 +8,71 @@
   </head>
   <body>
     <main class="app-shell">
-      <section class="intro" aria-labelledby="page-title">
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero-copy">
+          <p class="eyebrow">Your private cultural shelf</p>
+          <h1 id="page-title">Track what moved you.</h1>
+          <p class="lede">A personal log for books, theatre, film, TV, and exhibitions, built for the aftertaste: the mood, the memory, the recommendation, the idea.</p>
+          <div class="hero-actions">
+            <a href="#entry-form" class="primary-link">Add something</a>
+            <a href="#archive" class="secondary-link">Browse archive</a>
+          </div>
+        </div>
+
+        <aside class="dashboard" aria-label="Tracker summary">
+          <div class="dashboard-main">
+            <span class="dashboard-number" id="entry-count">0</span>
+            <span class="dashboard-label">entries saved</span>
+          </div>
+          <div class="stat-strip">
+            <div>
+              <span id="average-rating">0.0</span>
+              <small>avg rating</small>
+            </div>
+            <div>
+              <span id="revisit-rate">0%</span>
+              <small>revisit list</small>
+            </div>
+            <div>
+              <span id="monthly-count">0</span>
+              <small>this month</small>
+            </div>
+          </div>
+          <p id="favorite-format" class="dashboard-note">Start your shelf.</p>
+        </aside>
+      </section>
+
+      <section class="shelf-panel" aria-labelledby="shelf-title">
         <div>
-          <p class="eyebrow">Personal archive</p>
-          <h1 id="page-title">Media Tracker</h1>
-          <p class="lede">A quiet place to remember what you watched, read, visited, and kept thinking about afterward.</p>
+          <p class="eyebrow">Shelves</p>
+          <h2 id="shelf-title">Filter by format</h2>
         </div>
-        <div class="summary" aria-live="polite">
-          <span id="entry-count">0 entries</span>
-          <span id="favorite-format">No formats yet</span>
+        <div class="format-tabs" id="format-tabs" role="tablist" aria-label="Format filters">
+          <button type="button" class="format-tab active" data-format="All">All <span>0</span></button>
+          <button type="button" class="format-tab" data-format="Book">Books <span>0</span></button>
+          <button type="button" class="format-tab" data-format="Theatre">Theatre <span>0</span></button>
+          <button type="button" class="format-tab" data-format="Film">Films <span>0</span></button>
+          <button type="button" class="format-tab" data-format="TV Show">TV <span>0</span></button>
+          <button type="button" class="format-tab" data-format="Exhibition">Exhibitions <span>0</span></button>
         </div>
+      </section>
+
+      <section class="feature-panel hidden" id="feature-panel" aria-labelledby="feature-title">
+        <div>
+          <p class="eyebrow">Latest entry</p>
+          <h2 id="feature-title"></h2>
+          <p id="feature-meta"></p>
+        </div>
+        <blockquote id="feature-quote"></blockquote>
       </section>
 
       <section class="layout">
         <form id="entry-form" class="entry-form" autocomplete="off">
           <div class="form-heading">
-            <h2 id="form-title">Add an entry</h2>
+            <div>
+              <p class="eyebrow">Logbook</p>
+              <h2 id="form-title">Add an entry</h2>
+            </div>
             <button type="button" id="reset-form" class="ghost-button hidden">Cancel edit</button>
           </div>
 
@@ -88,32 +137,30 @@
 
           <label class="checkbox-row">
             <input id="wouldRevisit" name="wouldRevisit" type="checkbox">
-            <span>I would revisit this</span>
+            <span>Add to revisit shelf</span>
           </label>
 
           <button type="submit" class="primary-button" id="submit-button">Save entry</button>
         </form>
 
-        <section class="entries-panel" aria-labelledby="entries-title">
+        <section class="entries-panel" id="archive" aria-labelledby="entries-title">
           <div class="toolbar">
             <div>
               <p class="eyebrow">Archive</p>
-              <h2 id="entries-title">Saved entries</h2>
+              <h2 id="entries-title">Your cultural diary</h2>
             </div>
             <div class="controls">
               <label class="search-label">
                 <span class="sr-only">Search entries</span>
                 <input id="search" type="search" placeholder="Search title, vibe, notes">
               </label>
-              <label class="filter-label">
-                <span class="sr-only">Filter by format</span>
-                <select id="format-filter">
-                  <option value="All">All formats</option>
-                  <option value="Book">Books</option>
-                  <option value="Theatre">Theatre</option>
-                  <option value="Film">Films</option>
-                  <option value="TV Show">TV shows</option>
-                  <option value="Exhibition">Exhibitions</option>
+              <label class="sort-label">
+                <span class="sr-only">Sort entries</span>
+                <select id="sort-order">
+                  <option value="newest">Newest first</option>
+                  <option value="oldest">Oldest first</option>
+                  <option value="rating">Highest rated</option>
+                  <option value="title">Title A-Z</option>
                 </select>
               </label>
             </div>
@@ -131,37 +178,38 @@
 
     <template id="entry-template">
       <article class="entry-card">
-        <div class="entry-topline">
-          <div>
-            <p class="meta-line"></p>
-            <h3></h3>
+        <div class="card-spine"></div>
+        <div class="entry-content">
+          <div class="entry-topline">
+            <div>
+              <p class="meta-line"></p>
+              <h3></h3>
+            </div>
+            <span class="rating-badge"></span>
           </div>
-          <span class="rating-badge"></span>
-        </div>
-        <p class="vibe"></p>
-        <dl class="entry-details">
-          <div>
-            <dt>What stayed</dt>
-            <dd data-field="stayedWithMe"></dd>
-          </div>
-          <div>
-            <dt>Recommend to</dt>
-            <dd data-field="recommendTo"></dd>
-          </div>
-          <div>
-            <dt>Similar works</dt>
-            <dd data-field="similarWorks"></dd>
-          </div>
-          <div>
-            <dt>Content idea</dt>
-            <dd data-field="contentIdea"></dd>
-          </div>
-        </dl>
-        <div class="entry-footer">
-          <span class="revisit-pill"></span>
-          <div class="entry-actions">
-            <button type="button" data-action="edit">Edit</button>
-            <button type="button" data-action="delete">Delete</button>
+          <div class="rating-meter" aria-hidden="true"></div>
+          <p class="vibe"></p>
+          <p class="memory-line" data-field="stayedWithMe"></p>
+          <dl class="entry-details">
+            <div>
+              <dt>Recommend to</dt>
+              <dd data-field="recommendTo"></dd>
+            </div>
+            <div>
+              <dt>Similar works</dt>
+              <dd data-field="similarWorks"></dd>
+            </div>
+            <div>
+              <dt>Content idea</dt>
+              <dd data-field="contentIdea"></dd>
+            </div>
+          </dl>
+          <div class="entry-footer">
+            <span class="revisit-pill"></span>
+            <div class="entry-actions">
+              <button type="button" data-action="edit">Edit</button>
+              <button type="button" data-action="delete">Delete</button>
+            </div>
           </div>
         </div>
       </article>
