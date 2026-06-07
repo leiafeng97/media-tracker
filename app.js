@@ -1,5 +1,13 @@
 const STORAGE_KEY = "personal-media-tracker.entries.v1";
 const formats = ["Book", "Theatre", "Film", "TV Show", "Exhibition"];
+const formatLabels = {
+  All: "All",
+  Book: "Books",
+  Theatre: "Theatre",
+  Film: "Films",
+  "TV Show": "TV",
+  Exhibition: "Exhibitions"
+};
 
 const form = document.querySelector("#entry-form");
 const formTitle = document.querySelector("#form-title");
@@ -9,12 +17,21 @@ const entriesList = document.querySelector("#entries-list");
 const emptyState = document.querySelector("#empty-state");
 const template = document.querySelector("#entry-template");
 const searchInput = document.querySelector("#search");
-const formatFilter = document.querySelector("#format-filter");
+const sortOrder = document.querySelector("#sort-order");
+const formatTabs = document.querySelector("#format-tabs");
 const entryCount = document.querySelector("#entry-count");
 const favoriteFormat = document.querySelector("#favorite-format");
+const averageRating = document.querySelector("#average-rating");
+const revisitRate = document.querySelector("#revisit-rate");
+const monthlyCount = document.querySelector("#monthly-count");
+const featurePanel = document.querySelector("#feature-panel");
+const featureTitle = document.querySelector("#feature-title");
+const featureMeta = document.querySelector("#feature-meta");
+const featureQuote = document.querySelector("#feature-quote");
 
 let entries = loadEntries();
 let editingId = null;
+let activeFormat = "All";
 
 form.dateConsumed.valueAsDate = new Date();
 render();
@@ -55,7 +72,15 @@ form.addEventListener("submit", (event) => {
 
 resetFormButton.addEventListener("click", resetForm);
 searchInput.addEventListener("input", render);
-formatFilter.addEventListener("change", render);
+sortOrder.addEventListener("change", render);
+
+formatTabs.addEventListener("click", (event) => {
+  const button = event.target.closest(".format-tab");
+  if (!button) return;
+
+  activeFormat = button.dataset.format;
+  render();
+});
 
 entriesList.addEventListener("click", (event) => {
   const button = event.target.closest("button");
@@ -99,6 +124,7 @@ function render() {
   visibleEntries.forEach((entry) => {
     const card = template.content.firstElementChild.cloneNode(true);
     card.dataset.id = entry.id;
+    card.dataset.format = entry.format;
     card.querySelector("h3").textContent = entry.title;
     card.querySelector(".meta-line").textContent = `${entry.format} - ${formatDate(entry.dateConsumed)}`;
     card.querySelector(".rating-badge").textContent = `${entry.rating}/5`;
@@ -107,20 +133,68 @@ function render() {
     card.querySelector('[data-field="recommendTo"]').textContent = entry.recommendTo;
     card.querySelector('[data-field="similarWorks"]').textContent = entry.similarWorks;
     card.querySelector('[data-field="contentIdea"]').textContent = entry.contentIdea;
-    card.querySelector(".revisit-pill").textContent = entry.wouldRevisit ? "Would revisit" : "One-time encounter";
+    card.querySelector(".revisit-pill").textContent = entry.wouldRevisit ? "Revisit shelf" : "One-time encounter";
+    renderRatingMeter(card.querySelector(".rating-meter"), entry.rating);
     entriesList.append(card);
   });
 
-  entryCount.textContent = `${entries.length} ${entries.length === 1 ? "entry" : "entries"}`;
+  renderStats();
+  renderFormatTabs();
+  renderFeature();
+}
+
+function renderRatingMeter(container, rating) {
+  container.innerHTML = "";
+
+  for (let index = 1; index <= 5; index += 1) {
+    const segment = document.createElement("span");
+    if (index <= rating) segment.classList.add("filled");
+    container.append(segment);
+  }
+}
+
+function renderStats() {
+  const total = entries.length;
+  const avg = total ? entries.reduce((sum, entry) => sum + entry.rating, 0) / total : 0;
+  const revisits = total ? Math.round((entries.filter((entry) => entry.wouldRevisit).length / total) * 100) : 0;
+  const now = new Date();
+  const thisMonth = entries.filter((entry) => {
+    const date = new Date(`${entry.dateConsumed}T00:00:00`);
+    return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+  }).length;
+
+  entryCount.textContent = String(total);
+  averageRating.textContent = avg.toFixed(1);
+  revisitRate.textContent = `${revisits}%`;
+  monthlyCount.textContent = String(thisMonth);
   favoriteFormat.textContent = getMostCommonFormat();
+}
+
+function renderFormatTabs() {
+  const counts = getFormatCounts();
+  formatTabs.querySelectorAll(".format-tab").forEach((button) => {
+    const format = button.dataset.format;
+    button.classList.toggle("active", format === activeFormat);
+    button.querySelector("span").textContent = counts[format] ?? 0;
+  });
+}
+
+function renderFeature() {
+  const latest = [...entries].sort((a, b) => new Date(b.dateConsumed) - new Date(a.dateConsumed))[0];
+  featurePanel.classList.toggle("hidden", !latest);
+
+  if (!latest) return;
+
+  featureTitle.textContent = latest.title;
+  featureMeta.textContent = `${latest.format} - ${formatDate(latest.dateConsumed)} - ${latest.rating}/5`;
+  featureQuote.textContent = latest.stayedWithMe;
 }
 
 function getVisibleEntries() {
   const query = searchInput.value.trim().toLowerCase();
-  const selectedFormat = formatFilter.value;
 
   return entries
-    .filter((entry) => selectedFormat === "All" || entry.format === selectedFormat)
+    .filter((entry) => activeFormat === "All" || entry.format === activeFormat)
     .filter((entry) => {
       if (!query) return true;
       return [
@@ -133,18 +207,34 @@ function getVisibleEntries() {
         entry.contentIdea
       ].some((value) => String(value).toLowerCase().includes(query));
     })
-    .sort((a, b) => new Date(b.dateConsumed) - new Date(a.dateConsumed));
+    .sort(sortEntries);
+}
+
+function sortEntries(a, b) {
+  if (sortOrder.value === "oldest") return new Date(a.dateConsumed) - new Date(b.dateConsumed);
+  if (sortOrder.value === "rating") return b.rating - a.rating || new Date(b.dateConsumed) - new Date(a.dateConsumed);
+  if (sortOrder.value === "title") return a.title.localeCompare(b.title);
+  return new Date(b.dateConsumed) - new Date(a.dateConsumed);
+}
+
+function getFormatCounts() {
+  return ["All", ...formats].reduce((counts, format) => {
+    counts[format] = format === "All"
+      ? entries.length
+      : entries.filter((entry) => entry.format === format).length;
+    return counts;
+  }, {});
 }
 
 function getMostCommonFormat() {
-  if (!entries.length) return "No formats yet";
+  if (!entries.length) return "Start your shelf.";
 
   const counts = formats.map((format) => ({
     format,
     count: entries.filter((entry) => entry.format === format).length
   }));
   const top = counts.sort((a, b) => b.count - a.count)[0];
-  return top.count ? `Most saved: ${top.format}` : "No formats yet";
+  return top.count ? `Most saved: ${formatLabels[top.format]}` : "Start your shelf.";
 }
 
 function startEdit(entry) {
