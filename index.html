@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Personal Media Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="intro" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">Personal archive</p>
+          <h1 id="page-title">Media Tracker</h1>
+          <p class="lede">A quiet place to remember what you watched, read, visited, and kept thinking about afterward.</p>
+        </div>
+        <div class="summary" aria-live="polite">
+          <span id="entry-count">0 entries</span>
+          <span id="favorite-format">No formats yet</span>
+        </div>
+      </section>
+
+      <section class="layout">
+        <form id="entry-form" class="entry-form" autocomplete="off">
+          <div class="form-heading">
+            <h2 id="form-title">Add an entry</h2>
+            <button type="button" id="reset-form" class="ghost-button hidden">Cancel edit</button>
+          </div>
+
+          <label>
+            <span>Title</span>
+            <input id="title" name="title" type="text" required placeholder="Past Lives">
+          </label>
+
+          <div class="form-grid">
+            <label>
+              <span>Format</span>
+              <select id="format" name="format" required>
+                <option value="Book">Book</option>
+                <option value="Theatre">Theatre</option>
+                <option value="Film">Film</option>
+                <option value="TV Show">TV Show</option>
+                <option value="Exhibition">Exhibition</option>
+              </select>
+            </label>
+
+            <label>
+              <span>Date consumed</span>
+              <input id="dateConsumed" name="dateConsumed" type="date" required>
+            </label>
+          </div>
+
+          <fieldset>
+            <legend>Rating</legend>
+            <div class="rating-input" role="radiogroup" aria-label="Rating out of 5">
+              <label><input type="radio" name="rating" value="1" required><span>1</span></label>
+              <label><input type="radio" name="rating" value="2"><span>2</span></label>
+              <label><input type="radio" name="rating" value="3"><span>3</span></label>
+              <label><input type="radio" name="rating" value="4"><span>4</span></label>
+              <label><input type="radio" name="rating" value="5"><span>5</span></label>
+            </div>
+          </fieldset>
+
+          <label>
+            <span>Vibe in 3 words</span>
+            <input id="vibe" name="vibe" type="text" required placeholder="Tender, quiet, aching">
+          </label>
+
+          <label>
+            <span>What stayed with me</span>
+            <textarea id="stayedWithMe" name="stayedWithMe" required rows="3" placeholder="A line, image, feeling, scene, or question."></textarea>
+          </label>
+
+          <label>
+            <span>Who I would recommend it to</span>
+            <textarea id="recommendTo" name="recommendTo" required rows="2" placeholder="Friends who like slow-burn stories about memory."></textarea>
+          </label>
+
+          <label>
+            <span>Similar works</span>
+            <input id="similarWorks" name="similarWorks" type="text" placeholder="Before Sunrise, Aftersun">
+          </label>
+
+          <label>
+            <span>Content idea</span>
+            <textarea id="contentIdea" name="contentIdea" rows="2" placeholder="A short essay on the ache of almost-choices."></textarea>
+          </label>
+
+          <label class="checkbox-row">
+            <input id="wouldRevisit" name="wouldRevisit" type="checkbox">
+            <span>I would revisit this</span>
+          </label>
+
+          <button type="submit" class="primary-button" id="submit-button">Save entry</button>
+        </form>
+
+        <section class="entries-panel" aria-labelledby="entries-title">
+          <div class="toolbar">
+            <div>
+              <p class="eyebrow">Archive</p>
+              <h2 id="entries-title">Saved entries</h2>
+            </div>
+            <div class="controls">
+              <label class="search-label">
+                <span class="sr-only">Search entries</span>
+                <input id="search" type="search" placeholder="Search title, vibe, notes">
+              </label>
+              <label class="filter-label">
+                <span class="sr-only">Filter by format</span>
+                <select id="format-filter">
+                  <option value="All">All formats</option>
+                  <option value="Book">Books</option>
+                  <option value="Theatre">Theatre</option>
+                  <option value="Film">Films</option>
+                  <option value="TV Show">TV shows</option>
+                  <option value="Exhibition">Exhibitions</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div id="empty-state" class="empty-state">
+            <p>No entries yet.</p>
+            <span>Add something you recently consumed, even if all you have is a mood and a sentence.</span>
+          </div>
+
+          <div id="entries-list" class="entries-list"></div>
+        </section>
+      </section>
+    </main>
+
+    <template id="entry-template">
+      <article class="entry-card">
+        <div class="entry-topline">
+          <div>
+            <p class="meta-line"></p>
+            <h3></h3>
+          </div>
+          <span class="rating-badge"></span>
+        </div>
+        <p class="vibe"></p>
+        <dl class="entry-details">
+          <div>
+            <dt>What stayed</dt>
+            <dd data-field="stayedWithMe"></dd>
+          </div>
+          <div>
+            <dt>Recommend to</dt>
+            <dd data-field="recommendTo"></dd>
+          </div>
+          <div>
+            <dt>Similar works</dt>
+            <dd data-field="similarWorks"></dd>
+          </div>
+          <div>
+            <dt>Content idea</dt>
+            <dd data-field="contentIdea"></dd>
+          </div>
+        </dl>
+        <div class="entry-footer">
+          <span class="revisit-pill"></span>
+          <div class="entry-actions">
+            <button type="button" data-action="edit">Edit</button>
+            <button type="button" data-action="delete">Delete</button>
+          </div>
+        </div>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
