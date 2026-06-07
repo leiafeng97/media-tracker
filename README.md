@@ -18,3 +18,4 @@ Open `index.html` in a browser. Entries are saved to the browser's local storage
 - Similar works
 - Content idea
 - Whether I would revisit it
+- Optional item photo. If no photo is uploaded, the entry card uses a generated poster-style fallback.
