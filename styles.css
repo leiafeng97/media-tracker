@@ -536,6 +536,10 @@ textarea:focus {
   padding: 28px;
 }
 
+.empty-state.hidden {
+  display: none;
+}
+
 .empty-state p {
   margin-bottom: 0;
   color: var(--ink);
