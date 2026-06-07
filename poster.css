@@ -5,7 +5,11 @@
 }
 
 .entry-card {
-  grid-template-columns: 8px minmax(116px, 0.44fr) 1fr;
+  grid-template-columns: 8px minmax(116px, 0.42fr) 1fr;
+}
+
+.entry-card[data-format="Musical"] .card-spine {
+  background: var(--brass);
 }
 
 .entry-media {
@@ -14,7 +18,7 @@
   margin: 0;
   overflow: hidden;
   background:
-    linear-gradient(145deg, rgba(35, 32, 29, 0.82), rgba(47, 109, 80, 0.78)),
+    linear-gradient(145deg, rgba(33, 31, 29, 0.92), rgba(127, 29, 45, 0.58)),
     var(--charcoal);
 }
 
@@ -24,7 +28,7 @@
   height: 100%;
   min-height: 220px;
   object-fit: contain;
-  background: rgba(255, 253, 247, 0.72);
+  background: #f8f3ea;
 }
 
 .entry-media figcaption {
@@ -33,12 +37,12 @@
   right: 10px;
   bottom: 10px;
   border-radius: 999px;
-  background: rgba(23, 21, 19, 0.72);
-  color: #fffaf0;
+  background: rgba(23, 21, 20, 0.72);
+  color: #fffaf1;
   padding: 5px 9px;
   text-align: center;
   font-size: 0.7rem;
-  font-weight: 900;
+  font-weight: 850;
 }
 
 .entry-media figcaption[hidden] {
@@ -53,10 +57,10 @@
 
 .entry-media.generated::before {
   content: attr(data-initials);
-  color: rgba(255, 250, 240, 0.9);
+  color: rgba(255, 250, 241, 0.9);
   font-family: Georgia, "Times New Roman", serif;
   font-size: clamp(2.4rem, 8vw, 4.7rem);
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: -0.05em;
 }
 
@@ -64,7 +68,7 @@
   content: "";
   position: absolute;
   inset: 14px;
-  border: 1px solid rgba(255, 250, 240, 0.24);
+  border: 1px solid rgba(255, 250, 241, 0.24);
   border-radius: 6px;
 }
 
